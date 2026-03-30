@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbis — Géopolitique & Histoire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+        :root {
+            --ios-red: #ff3b30;
+            --bg-color: #f5f5f7;
+            --text-color: #1d1d1f;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: rgba(0, 0, 0, 0.05);
+            --blur-val: 25px;
+            --dock-border: rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode {
+            --bg-color: #050505;
+            --text-color: #f5f5f7;
+            --glass-bg: rgba(0, 0, 0, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: rgba(0, 0, 0, 0.4);
+            --blur-val: 40px;
+            --dock-border: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), color 0.8s ease;
+            overflow-x: hidden;
+        }
+
+        .mesh-gradient {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            mix-blend-mode: soft-light;
+            animation: float 20s infinite alternate ease-in-out;
+            opacity: 0.4;
+        }
+
+        .orb-1 { width: 80vw; height: 80vw; background: radial-gradient(circle, #007aff, transparent); top: -20%; left: -20%; animation-duration: 25s; }
+        .orb-2 { width: 70vw; height: 70vw; background: radial-gradient(circle, var(--ios-red), transparent); bottom: -10%; right: -10%; animation-duration: 30s; animation-delay: -5s; }
+        .orb-3 { width: 50vw; height: 50vw; background: radial-gradient(circle, #34c759, transparent); top: 30%; right: -10%; opacity: 0.15; animation-duration: 40s; }
+
+        @keyframes float {
+            0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33%  { transform: translate(5vw, 10vh) scale(1.1) rotate(10deg); }
+            66%  { transform: translate(-5vw, 5vh) scale(0.9) rotate(-10deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        }
+
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-val)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-val)) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 40px var(--glass-shadow);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .nav-glass {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255,255,255,0);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+        }
+
+        .nav-glass.scrolled {
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-val)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--blur-val)) saturate(180%);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+        }
+
+        .nav-link { text-decoration: none; color: inherit; transition: opacity 0.3s; }
+        .nav-link:hover { opacity: 1; color: var(--ios-red); }
+
+        .dock-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+            border-radius: 26px;
+            border: 1px solid var(--dock-border);
+        }
+
+        .dock-icon {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 0.5px solid rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .dark-mode .dock-icon {
+            background: #1c1c1e;
+            border: 0.5px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .dock-icon:hover { transform: scale(1.4) translateY(-15px); margin: 0 10px; }
+
+        .glass-toggle-container {
+            position: fixed;
+            top: 110%;
+            right: 30px;
+            z-index: 1100;
+            width: 80px; height: 44px;
+            border-radius: 100px;
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 4px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+
+        .dark-mode .glass-toggle-container { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+
+        .glass-thumb {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 0 4px white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 0.5px solid white;
+        }
+
+        .dark-mode .glass-thumb { transform: translateX(36px); background: rgba(40,40,45,0.7); border-color: rgba(255,255,255,0.2); }
+
+        .hero-articles { padding: 10rem 2rem 5rem; text-align: center; }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            font-weight: 800;
+            font-size: clamp(3.5rem, 10vw, 8rem);
+            letter-spacing: -0.04em;
+            line-height: 0.92;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-sub {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            opacity: 0.5;
+            max-width: 420px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+        }
+
+        .filters-bar {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+            padding: 0 1rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-color);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0.6;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            opacity: 1;
+            background: rgba(255, 59, 48, 0.15);
+            border-color: rgba(255, 59, 48, 0.4);
+            color: var(--ios-red);
+            transform: translateY(-2px);
+        }
+
+        .article-featured {
+            border-radius: 2.5rem;
+            overflow: hidden;
+            position: relative;
+            min-height: 480px;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 3rem;
+        }
+
+        .article-featured:hover { transform: scale(1.01); }
+        .article-featured .bg-layer { position: absolute; inset: 0; z-index: 0; transition: transform 0.8s ease; }
+        .article-featured:hover .bg-layer { transform: scale(1.05); }
+        .article-featured .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0.15) 100%); z-index: 1; }
+        .article-featured .content { position: relative; z-index: 2; }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .article-card {
+            border-radius: 2rem;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .article-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .article-card .card-top { height: 200px; position: relative; overflow: hidden; }
+        .article-card .card-top .bg-layer { position: absolute; inset: 0; transition: transform 0.7s ease; }
+        .article-card:hover .card-top .bg-layer { transform: scale(1.08); }
+        .article-card .card-body { padding: 1.75rem; flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.75rem;
+            border-radius: 100px;
+            border: 1px solid currentColor;
+            opacity: 0.9;
+        }
+
+        .card-title { font-family: 'Lora', serif; font-weight: 600; font-size: 1.2rem; line-height: 1.35; letter-spacing: -0.01em; }
+        .card-excerpt { font-size: 0.82rem; opacity: 0.55; line-height: 1.7; flex: 1; }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            font-weight: 600;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .article-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: flex-end;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .article-overlay.open { opacity: 1; pointer-events: all; }
+
+        .article-overlay-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .article-sheet {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 750px;
+            margin: 0 auto;
+            max-height: 88vh;
+            border-radius: 2.5rem 2.5rem 2rem 2rem;
+            overflow-y: auto;
+            transform: translateY(40px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            scrollbar-width: none;
+        }
+
+        .article-overlay.open .article-sheet { transform: translateY(0); }
+        .article-sheet::-webkit-scrollbar { display: none; }
+        .article-sheet-body { padding: 2.5rem; }
+
+        .article-prose { font-family: 'Lora', serif; font-size: 1.05rem; line-height: 1.9; opacity: 0.85; }
+        .article-prose h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; margin: 2rem 0 0.75rem; opacity: 1; }
+        .article-prose p { margin-bottom: 1.25rem; }
+        .article-prose strong { font-weight: 600; color: var(--text-color); }
+
+        .close-btn {
+            position: absolute;
+            top: 1.25rem; right: 1.25rem;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        .close-btn:hover { transform: scale(1.1); }
+
+        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+        .delay-5 { transition-delay: 0.5s; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="mesh-gradient">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <nav id="main-nav" class="nav-glass flex justify-between items-center">
+        <div class="font-bold text-xl tracking-tighter">
+            <a href="#" style="text-decoration:none;color:inherit;">Orbis_</a>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-semibold opacity-70">
+            <a href="#" class="nav-link" style="opacity:1;color:var(--ios-red)">Articles</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </div>
+        <div class="glass-toggle-container" onclick="toggleTheme()">
+            <div class="glass-thumb">
+                <i class="fas fa-sun text-orange-400 text-xs"></i>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-articles">
+        <div class="hero-label reveal">
+            <i class="fas fa-globe text-red-500"></i>
+            Géopolitique & Histoire Contemporaine
+        </div>
+        <h1 class="hero-title reveal delay-1">
+            <span class="text-red-500">Orbis</span>
+        </h1>
+        <p class="hero-sub reveal delay-2">
+            Analyses à travers l'histoire, les conflits et les équilibres de puissance du monde contemporain.
+        </p>
+
+        <div class="filters-bar reveal delay-3">
+            <button class="filter-btn active" onclick="filterArticles('all', this)">Tout</button>
+            <button class="filter-btn" onclick="filterArticles('conflit', this)">Conflits</button>
+            <button class="filter-btn" onclick="filterArticles('technologie', this)">Technologie</button>
+            <button class="filter-btn" onclick="filterArticles('carte', this)">Cartes & Territoires</button>
+            <button class="filter-btn" onclick="filterArticles('reflexion', this)">Réflexions</button>
+        </div>
+    </section>
+
+    <main class="px-6 pb-40 max-w-7xl mx-auto">
+
+        <!-- À la une : injecté dynamiquement -->
+        <div class="mb-12 reveal" id="featured-wrapper" style="display:none;">
+            <p class="text-xs font-bold opacity-30 uppercase tracking-widest mb-4">— À la une</p>
+            <div id="featured-card"></div>
+        </div>
+
+        <!-- Grille : injectée dynamiquement -->
+        <div class="articles-grid" id="articles-grid"></div>
+
+    </main>
+
+    <div class="article-overlay" id="article-overlay" onclick="closeOverlay(event)">
+        <div class="article-overlay-backdrop"></div>
+        <div class="article-sheet liquid-glass" id="article-sheet">
+            <button class="close-btn liquid-glass" onclick="closeArticle()">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+            <div id="article-header-bg" style="height:280px;border-radius:2rem 2rem 0 0;"></div>
+            <div class="article-sheet-body">
+                <div class="flex flex-wrap gap-2 mb-4" id="article-tags"></div>
+                <h2 id="article-full-title" style="font-family:'Lora',serif;font-weight:600;font-size:1.8rem;line-height:1.25;letter-spacing:-0.02em;margin-bottom:0.75rem;"></h2>
+                <div id="article-meta-bar" style="display:flex;gap:1rem;font-size:0.7rem;opacity:0.4;font-weight:600;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--glass-border);flex-wrap:wrap;"></div>
+                <div class="article-prose" id="article-full-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dock-container liquid-glass">
+        <a href="#" class="dock-icon" title="Accueil" style="background:rgba(255,59,48,0.12);border-color:rgba(255,59,48,0.3)">
+            <i class="fas fa-globe text-red-500"></i>
+        </a>
+        <a href="#contact" class="dock-icon" title="Contact">
+            <i class="fas fa-paper-plane text-blue-500"></i>
+        </a>
+    </div>
+
+    <footer class="text-center pb-32 pt-8" id="contact">
+        <p style="font-size:10px;opacity:0.2;text-transform:uppercase;letter-spacing:0.4em;">Orbis — Géopolitique & Histoire contemporaine &bull; 2025</p>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('orbis-theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('orbis-theme') === 'dark') document.body.classList.add('dark-mode');
+
+        window.addEventListener('scroll', () => {
+            document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ── DATA ──────────────────────────────────────────────────────────
+        let articlesData = [];
+
+        async function loadArticles() {
+            try {
+                const res = await fetch('articles.json?t=' + Date.now());
+                if (res.ok) articlesData = await res.json();
+                else throw new Error();
+            } catch {
+                const saved = localStorage.getItem('orbis-articles');
+                if (saved) articlesData = JSON.parse(saved);
+            }
+            articlesData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderAll();
+        }
+
+        // ── RENDER ────────────────────────────────────────────────────────
+        function renderAll() {
+            renderFeatured();
+            renderGrid();
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
+
+        function renderFeatured() {
+            const featured = articlesData.find(a => a.featured);
+            const wrapper = document.getElementById('featured-wrapper');
+            if (!featured) { wrapper.style.display = 'none'; return; }
+            wrapper.style.display = 'block';
+            document.getElementById('featured-card').innerHTML = `
+                <div class="article-featured liquid-glass" onclick="openArticle('${featured.id}')" data-cat="${featured.category}">
+                    <div class="bg-layer" style="background:${featured.bg};"></div>
+                    <div class="overlay"></div>
+                    <div class="content">
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="tag" style="color:${featured.categoryColor};border-color:rgba(${featured.categoryColorRgb},0.4)">
+                                <i class="${featured.categoryIcon}"></i> ${featured.categoryLabel}
+                            </span>
+                            <span class="tag" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)">${featured.readingTime} min</span>
+                        </div>
+                        <h2 style="font-family:'Lora',serif;font-weight:600;font-size:clamp(1.5rem,4vw,2.5rem);color:white;line-height:1.2;letter-spacing:-0.02em;margin-bottom:0.75rem;">
+                            ${featured.title}
+                        </h2>
+                        <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;max-width:640px;line-height:1.7;">${featured.excerpt}</p>
+                        <div style="margin-top:1.5rem;display:flex;align-items:center;gap:1rem;font-size:0.7rem;color:rgba(255,255,255,0.35);font-weight:600;">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>${featured.dateLabel}</span>
+                            ${featured.views && featured.views !== '0' ? `<span><i class="fas fa-eye mr-1"></i>${featured.views} lectures</span>` : ''}
+                            <span style="margin-left:auto;display:flex;align-items:center;gap:0.4rem;color:rgba(255,255,255,0.6)">
+                                Lire l'article <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('articles-grid');
+            const delays = ['delay-1','delay-2','delay-3'];
+            const nonFeatured = articlesData.filter(a => !a.featured);
+            if (nonFeatured.length === 0) { grid.innerHTML = ''; return; }
+            grid.innerHTML = nonFeatured.map((a, i) => `
+                <div class="article-card liquid-glass reveal ${delays[i % 3]}" onclick="openArticle('${a.id}')" data-cat="${a.category}">
+                    <div class="card-top">
+                        <div class="bg-layer" style="background:${a.bg};"></div>
+                    </div>
+                    <div class="card-body">
+                        <div><span class="tag" style="color:${a.categoryColor};border-color:rgba(${a.categoryColorRgb},0.4)">
+                            <i class="${a.categoryIcon} mr-1"></i>${a.categoryLabel}
+                        </span></div>
+                        <h3 class="card-title">${a.title}</h3>
+                        <p class="card-excerpt">${a.excerpt}</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>${a.dateLabel}</span>
+                            <span><i class="fas fa-clock mr-1"></i>${a.readingTime} min</span>
+                            <span style="margin-left:auto"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        // ── FILTER ────────────────────────────────────────────────────────
+        function filterArticles(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const featuredWrapper = document.getElementById('featured-wrapper');
+            const cards = document.querySelectorAll('#articles-grid .article-card');
+            const featuredData = articlesData.find(a => a.featured);
+            if (cat === 'all') {
+                if (featuredData) featuredWrapper.style.display = 'block';
+                cards.forEach(c => c.style.display = 'flex');
+            } else {
+                featuredWrapper.style.display = (featuredData && featuredData.category === cat) ? 'block' : 'none';
+                cards.forEach(c => c.style.display = c.dataset.cat === cat ? 'flex' : 'none');
+            }
+        }
+
+        // ── OPEN ARTICLE ──────────────────────────────────────────────────
+        function openArticle(id) {
+            const a = articlesData.find(x => x.id === id);
+            if (!a) return;
+            document.getElementById('article-header-bg').style.background = a.bg;
+            document.getElementById('article-tags').innerHTML =
+                `<span class="tag" style="color:${a.categoryColor};border-color:rgba(${a.categoryColorRgb},0.4)">
+                    <i class="${a.categoryIcon} mr-1"></i>${a.categoryLabel}
+                 </span>`;
+            document.getElementById('article-full-title').textContent = a.title;
+            document.getElementById('article-meta-bar').innerHTML =
+                `<span><i class="fas fa-calendar-alt mr-1"></i>${a.dateLabel}</span>
+                 <span><i class="fas fa-clock mr-1"></i>${a.readingTime} min de lecture</span>
+                 ${a.views && a.views !== '0' ? `<span><i class="fas fa-eye mr-1"></i>${a.views} lectures</span>` : ''}`;
+            document.getElementById('article-full-content').innerHTML = a.content;
+            document.getElementById('article-sheet').scrollTop = 0;
+            document.getElementById('article-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeArticle() {
+            document.getElementById('article-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function closeOverlay(e) {
+            if (e.target === document.getElementById('article-overlay') || e.target.classList.contains('article-overlay-backdrop')) {
+                closeArticle();
+            }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeArticle(); });
+        loadArticles();
+    </script>
+</body>
+</html>
